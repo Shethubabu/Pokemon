@@ -1,6 +1,10 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPokemonDetails } from "../api/pokemonApi";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
+import { Progress } from "@/components/ui/progress";
 
 interface PokemonStat {
   base_stat: number;
@@ -37,10 +41,11 @@ const PokemonDetails = () => {
     enabled: !!name,
   });
 
+  
   if (isLoading)
     return (
-      <div className="min-h-screen flex items-center justify-center text-xl font-semibold">
-        Loading Pokémon...
+      <div className="min-h-screen flex items-center justify-center">
+        <Spinner className="w-12 h-12" />
       </div>
     );
 
@@ -49,43 +54,34 @@ const PokemonDetails = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 p-6">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8">
+      
+        <Button asChild variant="ghost" className="mb-4">
+          <Link to="/">← Back</Link>
+        </Button>
 
-        {/* Back Button */}
-        <Link
-          to="/"
-          className="text-blue-600 font-medium hover:underline"
-        >
-          ← Back
-        </Link>
-
-        {/* Image + Name */}
+        
         <div className="text-center">
           <img
             src={data.sprites.other["official-artwork"].front_default}
             alt={data.name}
             className="w-72 mx-auto drop-shadow-xl"
           />
+          <h1 className="text-4xl font-bold capitalize mt-4">{data.name}</h1>
 
-          <h1 className="text-4xl font-bold capitalize mt-4">
-            {data.name}
-          </h1>
-
-          {/* Types */}
+       
           <div className="flex justify-center gap-3 mt-4">
             {data.types.map((t: any) => (
-              <span
+              <Badge
                 key={t.type.name}
-                className={`px-4 py-1 text-white rounded-full capitalize text-sm font-semibold ${
-                  typeColors[t.type.name] || "bg-gray-500"
-                }`}
+                className={`${typeColors[t.type.name] || "bg-gray-500"} capitalize`}
               >
                 {t.type.name}
-              </span>
+              </Badge>
             ))}
           </div>
         </div>
 
-        {/* Basic Info */}
+       
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10 text-center">
           <div>
             <p className="text-gray-500">Height</p>
@@ -102,40 +98,27 @@ const PokemonDetails = () => {
           <div>
             <p className="text-gray-500">Abilities</p>
             <p className="font-bold text-lg capitalize">
-              {data.abilities
-                .map((a: any) => a.ability.name)
-                .join(", ")}
+              {data.abilities.map((a: any) => a.ability.name).join(", ")}
             </p>
           </div>
         </div>
 
-        {/* Stats Section */}
+        
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Base Stats</h2>
-
           <div className="space-y-4">
             {data.stats.map((stat: PokemonStat) => (
               <div key={stat.stat.name}>
                 <div className="flex justify-between mb-1">
-                  <span className="capitalize font-medium">
-                    {stat.stat.name}
-                  </span>
+                  <span className="capitalize font-medium">{stat.stat.name}</span>
                   <span>{stat.base_stat}</span>
                 </div>
-
-                <div className="w-full bg-gray-200 rounded-full h-3">
-                  <div
-                    className="bg-blue-500 h-3 rounded-full transition-all duration-700"
-                    style={{
-                      width: `${Math.min(stat.base_stat, 100)}%`,
-                    }}
-                  />
-                </div>
+               
+                <Progress value={Math.min(stat.base_stat, 100)} />
               </div>
             ))}
           </div>
         </div>
-
       </div>
     </div>
   );

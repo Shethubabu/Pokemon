@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Card, CardHeader, CardTitle, CardContent } from "./ui/card"
 
 interface Props {
   name: string;
@@ -7,16 +8,20 @@ interface Props {
 const PokemonCard = ({ name }: Props) => {
   return (
     <Link to={`/pokemon/${name}`}>
-      <div className="bg-white shadow-md rounded-xl p-4 hover:scale-105 transition">
-        <img
-          src={`https://img.pokemondb.net/artwork/${name}.jpg`}
-          alt={name}
-          className="w-full h-40 object-contain"
-        />
-        <h2 className="text-center capitalize font-bold mt-2">
-          {name}
-        </h2>
-      </div>
+      <Card className="hover:scale-105 transition">
+        <CardHeader>
+          <CardTitle className="text-center capitalize text-lg font-bold">
+            {name}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <img
+            src={`https://img.pokemondb.net/artwork/${name}.jpg`}
+            alt={name}
+            className="w-full h-40 object-contain"
+          />
+        </CardContent>
+      </Card>
     </Link>
   );
 };

@@ -14,3 +14,4 @@ export const fetchPokemonDetails = async (name: string) => {
   const res = await axios.get(`${BASE_URL}/pokemon/${name}`);
   return res.data;
 };
+
