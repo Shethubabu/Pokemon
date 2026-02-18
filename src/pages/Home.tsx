@@ -2,13 +2,25 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { fetchPokemons } from "../api/pokemonApi";
 import PokemonCard from "../components/PokemonCard";
 import { useInView } from "react-intersection-observer";
-import { useEffect, useState } from "react";
-import { Input } from "../components/ui/input";
+import { useEffect, useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { useDebounce } from "use-debounce";
 import { Spinner } from "@/components/ui/spinner";
 
+type SearchForm = {
+  search: string;
+};
+
 const Home = () => {
-  const [search, setSearch] = useState("");
   const { ref, inView } = useInView();
+
+  const { control, register } = useForm<SearchForm>({
+    defaultValues: { search: "" },
+  });
+
+  const searchValue = useWatch({ control, name: "search" });
+  const [debouncedSearch] = useDebounce(searchValue ?? "", 300);
+
 
   const {
     data,
@@ -17,7 +29,7 @@ const Home = () => {
     isFetchingNextPage,
     isPending,
   } = useInfiniteQuery({
-    queryKey: ["pokemons"],
+    queryKey: ["pokemons"], 
     queryFn: fetchPokemons,
     initialPageParam: 0,
     getNextPageParam: (lastPage) => {
@@ -28,36 +40,47 @@ const Home = () => {
     },
   });
 
+ 
   useEffect(() => {
     if (inView && hasNextPage) fetchNextPage();
-  }, [inView]);
+  }, [inView, hasNextPage, fetchNextPage]);
 
-  const filtered = data?.pages
-    .flatMap((page) => page.results)
-    .filter((pokemon) =>
-      pokemon.name.toLowerCase().includes(search.toLowerCase())
-    );
+  
+  const filtered = useMemo(() => {
+    if (!data) return [];
+    return data.pages
+      .flatMap((page) => page.results)
+      .filter((pokemon) =>
+        pokemon.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+      );
+  }, [data, debouncedSearch]);
 
- 
-  if (isPending)
+
+  if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner className="w-12 h-12" />
       </div>
     );
+  }
 
   return (
     <div className="container mx-auto p-6">
-      <Input
+    
+      <input
+        {...register("search")}
         placeholder="Search Pokémon..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="mb-6"
+        className="mb-6 w-full border rounded-md p-2"
       />
 
+    
       <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-        {filtered?.map((pokemon) => (
-          <PokemonCard key={pokemon.name} name={pokemon.name} />
+        {filtered.map((pokemon) => (
+          <PokemonCard
+            key={pokemon.name}
+            name={pokemon.name}
+            url={pokemon.url} // pass URL from list API
+          />
         ))}
       </div>
 

@@ -1,15 +1,10 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { fetchPokemonDetails } from "../api/pokemonApi";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Progress } from "@/components/ui/progress";
-
-interface PokemonStat {
-  base_stat: number;
-  stat: { name: string };
-}
 
 const typeColors: Record<string, string> = {
   fire: "bg-red-500",
@@ -34,6 +29,7 @@ const typeColors: Record<string, string> = {
 
 const PokemonDetails = () => {
   const { name } = useParams();
+  const navigate = useNavigate();
 
   const { data, isLoading } = useQuery({
     queryKey: ["pokemon", name],
@@ -41,39 +37,52 @@ const PokemonDetails = () => {
     enabled: !!name,
   });
 
-  
-  if (isLoading)
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Spinner className="w-12 h-12" />
       </div>
     );
+  }
 
   if (!data) return null;
+
+  const artwork =
+    data.sprites.other?.["official-artwork"]?.front_default ?? "";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 p-6">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-8">
-      
-        <Button asChild variant="ghost" className="mb-4">
-          <Link to="/">← Back</Link>
+        
+        {/* Back Button using navigate */}
+        <Button
+          variant="ghost"
+          className="mb-4"
+          onClick={() => navigate("/")}
+        >
+          ← Back
         </Button>
 
-        
+        {/* Pokemon Info */}
         <div className="text-center">
           <img
-            src={data.sprites.other["official-artwork"].front_default}
+            src={artwork}
             alt={data.name}
             className="w-72 mx-auto drop-shadow-xl"
           />
-          <h1 className="text-4xl font-bold capitalize mt-4">{data.name}</h1>
 
-       
+          <h1 className="text-4xl font-bold capitalize mt-4">
+            {data.name}
+          </h1>
+
+          
           <div className="flex justify-center gap-3 mt-4">
-            {data.types.map((t: any) => (
+            {data.types.map((t) => (
               <Badge
                 key={t.type.name}
-                className={`${typeColors[t.type.name] || "bg-gray-500"} capitalize`}
+                className={`${
+                  typeColors[t.type.name] || "bg-gray-500"
+                } capitalize`}
               >
                 {t.type.name}
               </Badge>
@@ -81,7 +90,7 @@ const PokemonDetails = () => {
           </div>
         </div>
 
-       
+        {/* Basic Info */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-10 text-center">
           <div>
             <p className="text-gray-500">Height</p>
@@ -93,32 +102,41 @@ const PokemonDetails = () => {
           </div>
           <div>
             <p className="text-gray-500">Base Exp</p>
-            <p className="font-bold text-lg">{data.base_experience}</p>
+            <p className="font-bold text-lg">
+              {data.base_experience}
+            </p>
           </div>
           <div>
             <p className="text-gray-500">Abilities</p>
             <p className="font-bold text-lg capitalize">
-              {data.abilities.map((a: any) => a.ability.name).join(", ")}
+              {data.abilities
+                .map((a) => a.ability.name)
+                .join(", ")}
             </p>
           </div>
         </div>
 
-        
         <div className="mt-12">
           <h2 className="text-2xl font-bold mb-6">Base Stats</h2>
+
           <div className="space-y-4">
-            {data.stats.map((stat: PokemonStat) => (
+            {data.stats.map((stat) => (
               <div key={stat.stat.name}>
                 <div className="flex justify-between mb-1">
-                  <span className="capitalize font-medium">{stat.stat.name}</span>
+                  <span className="capitalize font-medium">
+                    {stat.stat.name}
+                  </span>
                   <span>{stat.base_stat}</span>
                 </div>
-               
-                <Progress value={Math.min(stat.base_stat, 100)} />
+
+                <Progress
+                  value={Math.min(stat.base_stat, 100)}
+                />
               </div>
             ))}
           </div>
         </div>
+
       </div>
     </div>
   );
